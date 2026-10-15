@@ -1,0 +1,25 @@
+{
+  "name": "omnimedia-ai-studio",
+  "version": "1.0.0",
+  "description": "OmniMedia AI Studio — Autonomous Pre-Production & Omnichannel Media Engine (AI Builder Cup 2026)",
+  "private": true,
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build",
+    "build": "cd frontend && npm run build",
+    "test:health": "node -e \"const http = require('http'); http.get('http://localhost:8080/health', res => { console.log('Status:', res.statusCode); res.pipe(process.stdout); });\""
+  },
+  "keywords": [
+    "gemini",
+    "google-cloud",
+    "cloud-run",
+    "firestore",
+    "ai-builder-cup-2026",
+    "hackathon",
+    "omnimedia"
+  ],
+  "author": "ByteBound Team",
+  "license": "MIT"
+}

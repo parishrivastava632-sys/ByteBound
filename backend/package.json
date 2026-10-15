@@ -1,0 +1,28 @@
+{
+  "name": "omnimedia-backend",
+  "version": "1.0.0",
+  "description": "OmniMedia AI Studio - Cloud Run Microservice for Autonomous Media Generation",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "gemini",
+    "google-cloud",
+    "cloud-run",
+    "firestore",
+    "firebase-auth",
+    "media-engine"
+  ],
+  "author": "ByteBound Team",
+  "license": "MIT",
+  "dependencies": {
+    "@google/genai": "^2.30.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "firebase-admin": "^13.1.0"
+  }
+}

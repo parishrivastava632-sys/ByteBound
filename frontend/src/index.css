@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-studio-950 text-slate-100 font-sans;
+    background-image: 
+      radial-gradient(circle at 15% 10%, rgba(127, 90, 240, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 85% 60%, rgba(0, 242, 254, 0.06) 0%, transparent 40%),
+      radial-gradient(circle at 50% 90%, rgba(255, 65, 108, 0.05) 0%, transparent 45%);
+    background-attachment: fixed;
+  }
+}
+
+/* Glassmorphism panel styles */
+.glass-panel {
+  background: rgba(19, 24, 34, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.glass-panel-hover {
+  transition: all 0.25s ease-in-out;
+}
+
+.glass-panel-hover:hover {
+  background: rgba(26, 34, 50, 0.85);
+  border-color: rgba(127, 90, 240, 0.35);
+  box-shadow: 0 10px 30px -10px rgba(127, 90, 240, 0.2);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(13, 17, 23, 0.6);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(61, 79, 112, 0.6);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(127, 90, 240, 0.8);
+}
