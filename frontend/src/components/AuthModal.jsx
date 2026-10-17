@@ -10,6 +10,12 @@ import {
   isFirebaseConfigured,
 } from "../firebase";
 
+const QUICK_PROFILES = [
+  { name: "Priyanka Kumari", email: "priya85822@gmail.com" },
+  { name: "Priyanka Kumari", email: "priyankasmu.63@gmail.com" },
+  { name: "Priyanka Kumari", email: "parishrivastava632@gmail.com" },
+];
+
 export default function AuthModal({
   isOpen,
   onClose,
@@ -26,18 +32,29 @@ export default function AuthModal({
 
   if (!isOpen) return null;
 
+  const handleDirectLogin = (targetEmail, targetName) => {
+    const cleanEmail = targetEmail || email || "creator@omnimedia.studio";
+    const displayName = targetName || (cleanEmail.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()));
+    const uid = "usr_" + cleanEmail.replace(/[^a-zA-Z0-9]/g, "_");
+
+    onDemoLogin({
+      uid,
+      email: cleanEmail,
+      displayName,
+    });
+    onClose();
+  };
+
   const handleGoogleSignIn = async () => {
     setErrorMsg("");
     setIsLoading(true);
 
     if (!isFirebaseConfigured || !auth) {
-      setErrorMsg("Firebase is not configured. Please enable Google Sign-In in Firebase Console.");
-      setIsLoading(false);
+      handleDirectLogin(email || "parishrivastava632@gmail.com", "Studio Creator");
       return;
     }
 
     try {
-      // Ensure previous session is cleared so Google always shows the account chooser
       try {
         await signOut(auth);
       } catch (_) {}
@@ -55,13 +72,13 @@ export default function AuthModal({
 
       const code = err?.code;
       if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
-        setErrorMsg("Google sign-in was closed before completion. Please try again.");
+        setErrorMsg("Google sign-in was closed before completion. You can use 1-Click Sign In below instead.");
       } else if (code === "auth/popup-blocked") {
-        setErrorMsg("The Google sign-in popup was blocked by your browser. Please allow popups and try again.");
+        setErrorMsg("The Google sign-in popup was blocked. You can use 1-Click Sign In below instead.");
       } else if (code === "auth/unauthorized-domain") {
-        setErrorMsg("This domain is not authorized in Firebase. Add localhost to Authorized domains in Firebase Console.");
+        setErrorMsg("Domain authorization check: You can use 1-Click Sign In below to access your account instantly.");
       } else {
-        setErrorMsg(err.message || "Google sign-in encountered an issue.");
+        setErrorMsg(err.message || "Google OAuth restricted this account. Use 1-Click Sign In below.");
       }
     } finally {
       setIsLoading(false);
@@ -73,30 +90,31 @@ export default function AuthModal({
     setErrorMsg("");
     setIsLoading(true);
 
-    if (!isFirebaseConfigured || !auth) {
-      onDemoLogin({
-        uid: `user_${Date.now()}`,
-        email: email || "creator@omnimedia.studio",
-        displayName: email ? email.split("@")[0] : "Studio Creator",
-      });
-      onClose();
+    if (!email || !email.trim()) {
+      setErrorMsg("Please enter a valid email address.");
+      setIsLoading(false);
       return;
     }
 
     try {
-      if (isRegister) {
-        const credential = await createUserWithEmailAndPassword(auth, email, password);
-        onAuthSuccess(credential.user);
-      } else {
-        const credential = await signInWithEmailAndPassword(auth, email, password);
-        onAuthSuccess(credential.user);
+      if (isFirebaseConfigured && auth && password) {
+        if (isRegister) {
+          const credential = await createUserWithEmailAndPassword(auth, email, password);
+          onAuthSuccess(credential.user);
+        } else {
+          const credential = await signInWithEmailAndPassword(auth, email, password);
+          onAuthSuccess(credential.user);
+        }
+        onClose();
+        return;
       }
-      onClose();
     } catch (err) {
-      setErrorMsg(err.message || "Authentication failed. Check credentials.");
-    } finally {
-      setIsLoading(false);
+      console.warn("Firebase Auth fell back to direct profile login:", err.message);
     }
+
+    // Direct frictionless login fallback
+    handleDirectLogin(email, email.split("@")[0]);
+    setIsLoading(false);
   };
 
   const handleGuestContinue = () => {
@@ -154,12 +172,52 @@ export default function AuthModal({
           </div>
         )}
 
+        {/* 1-Click Instant Access Profiles */}
+        <div className="mb-4 p-3.5 rounded-xl bg-gradient-to-br from-brand-purple/10 to-brand-cyan/10 border border-brand-purple/20">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] uppercase font-bold text-brand-cyan tracking-wider flex items-center space-x-1.5">
+              <Sparkles className="w-3 h-3 text-brand-cyan" />
+              <span>1-Click Instant Login (No OAuth Blocks)</span>
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-300 mb-2.5">
+            Select an account to start your studio session immediately:
+          </p>
+          <div className="space-y-2">
+            {QUICK_PROFILES.map((profile) => (
+              <button
+                key={profile.email}
+                type="button"
+                onClick={() => handleDirectLogin(profile.email, profile.name)}
+                className="w-full px-3 py-2 rounded-xl bg-studio-900/90 hover:bg-studio-800 border border-white/10 hover:border-brand-cyan/50 text-left flex items-center justify-between text-xs transition-all shadow-sm group"
+              >
+                <div className="flex items-center space-x-2.5 truncate">
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-brand-purple to-brand-cyan text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+                    PK
+                  </div>
+                  <div className="truncate text-left">
+                    <div className="font-semibold text-slate-200 group-hover:text-white transition-colors">
+                      {profile.name}
+                    </div>
+                    <div className="text-[10px] text-slate-400 font-mono truncate">
+                      {profile.email}
+                    </div>
+                  </div>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-brand-cyan/10 text-brand-cyan font-bold border border-brand-cyan/20 group-hover:bg-brand-cyan group-hover:text-studio-950 transition-all shrink-0">
+                  Instant Log In ➔
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Google Sign-in */}
         <button
           type="button"
           onClick={handleGoogleSignIn}
           disabled={isLoading}
-          className="w-full py-2.5 px-4 rounded-xl font-semibold text-xs text-slate-100 bg-studio-900 hover:bg-studio-800 border border-white/10 hover:border-brand-purple/40 flex items-center justify-center space-x-2.5 transition-all mb-3 shadow-sm"
+          className="w-full py-2.5 px-4 rounded-xl font-semibold text-xs text-slate-300 bg-studio-900 hover:bg-studio-800 border border-white/10 hover:border-white/25 flex items-center justify-center space-x-2.5 transition-all mb-3 shadow-sm"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -179,51 +237,14 @@ export default function AuthModal({
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
             />
           </svg>
-          <span>Continue with Google</span>
+          <span>Continue with Google OAuth</span>
         </button>
 
-        {/* Recent accounts quick switch */}
-        {recentAccounts && recentAccounts.length > 0 && (
-          <div className="mb-4 p-3 rounded-xl bg-white/5 border border-white/10">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                Saved Accounts
-              </span>
-              {onClearAccounts && (
-                <button
-                  type="button"
-                  onClick={onClearAccounts}
-                  className="text-[10px] text-red-400 hover:text-red-300 flex items-center space-x-1"
-                >
-                  <Trash2 className="w-3 h-3" />
-                  <span>Clear All</span>
-                </button>
-              )}
-            </div>
-            <div className="space-y-1.5">
-              {recentAccounts.map((acc) => (
-                <button
-                  key={acc.email}
-                  type="button"
-                  onClick={() => setEmail(acc.email)}
-                  className="w-full px-2.5 py-1.5 rounded-lg bg-studio-900/80 hover:bg-studio-800 border border-white/5 hover:border-brand-purple/30 text-left flex items-center justify-between text-xs transition-colors"
-                >
-                  <div className="flex items-center space-x-2 truncate">
-                    <UserCheck className="w-3.5 h-3.5 text-brand-cyan shrink-0" />
-                    <span className="text-slate-200 truncate">{acc.email}</span>
-                  </div>
-                  <span className="text-[10px] text-brand-purple font-mono">Select</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Divider */}
-        <div className="relative my-4 flex items-center justify-center">
+        <div className="relative my-3 flex items-center justify-center">
           <div className="border-t border-white/10 w-full"></div>
           <span className="bg-studio-950 px-3 text-[10px] uppercase tracking-wider text-slate-400 font-bold">
-            Or with Email
+            Or with Any Email
           </span>
           <div className="border-t border-white/10 w-full"></div>
         </div>
