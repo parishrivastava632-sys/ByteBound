@@ -7,6 +7,8 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  setPersistence,
+  browserSessionPersistence,
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
@@ -23,7 +25,8 @@ const firebaseConfig = {
 export const isFirebaseConfigured = Boolean(
   firebaseConfig.apiKey &&
   firebaseConfig.apiKey !== "AIzaSyDummyApiKeyForLocalDevelopment0123" &&
-  firebaseConfig.projectId
+  firebaseConfig.projectId &&
+  firebaseConfig.authDomain
 );
 
 let app = null;
@@ -37,6 +40,10 @@ try {
     auth = getAuth(app);
     db = getFirestore(app);
     googleProvider = new GoogleAuthProvider();
+
+    setPersistence(auth, browserSessionPersistence).catch((err) => {
+      console.warn("⚠️ [Firebase] Could not set session persistence:", err?.message || err);
+    });
   }
 } catch (err) {
   console.warn("⚠️ [Firebase Client] Running in standalone demo mode:", err.message);
@@ -51,4 +58,6 @@ export {
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  setPersistence,
+  browserSessionPersistence,
 };

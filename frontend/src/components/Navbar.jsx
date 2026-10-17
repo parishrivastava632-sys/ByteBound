@@ -1,10 +1,12 @@
 import React from "react";
-import { Sparkles, Video, User, LogOut, Github, Cpu, Cloud, Database, FileText } from "lucide-react";
+import { Sparkles, Video, User, LogOut, Github, Cpu, Cloud, Database, FileText, ArrowRightLeft } from "lucide-react";
 
 export default function Navbar({
   user,
   onOpenAuth,
   onSignOut,
+  onSwitchAccount,
+  recentAccounts = [],
   onOpenSamples,
   onNewProject,
   backendHealth,
@@ -44,7 +46,7 @@ export default function Navbar({
           </div>
           <div className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-studio-900 border border-white/5">
             <Cloud className="w-3.5 h-3.5 text-blue-400" />
-            <span>Cloud Run</span>
+            <span>{backendHealth?.status === "ok" && backendHealth?.geminiConfigured ? "Cloud Run" : "Local Demo"}</span>
           </div>
           <div className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-studio-900 border border-white/5">
             <Database className="w-3.5 h-3.5 text-amber-400" />
@@ -57,7 +59,7 @@ export default function Navbar({
               : "bg-amber-500/10 border-amber-500/30 text-amber-300"
           }`}>
             <span className={`w-2 h-2 rounded-full ${backendHealth?.status === "ok" ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`}></span>
-            <span>{backendHealth?.status === "ok" ? "API Online" : "API Connecting"}</span>
+            <span>{backendHealth?.status === "ok" ? (backendHealth?.geminiConfigured ? "API Online" : "Demo Mode") : "API Connecting"}</span>
           </div>
         </div>
 
@@ -93,6 +95,15 @@ export default function Navbar({
                   <div className="text-[10px] text-brand-cyan font-mono">Active Session</div>
                 </div>
               </div>
+              {recentAccounts.length > 0 && (
+                <button
+                  onClick={onSwitchAccount}
+                  title="Switch account"
+                  className="p-1.5 rounded-lg text-slate-300 hover:text-brand-cyan hover:bg-brand-cyan/10 transition-colors"
+                >
+                  <ArrowRightLeft className="w-4 h-4" />
+                </button>
+              )}
               <button
                 onClick={onSignOut}
                 title="Sign out"
@@ -108,7 +119,7 @@ export default function Navbar({
                 className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-brand-cyan hover:text-white bg-brand-cyan/10 hover:bg-brand-cyan/20 border border-brand-cyan/30 transition-all shadow-sm"
               >
                 <User className="w-3.5 h-3.5" />
-                <span>Sign In / Demo</span>
+                <span>Sign in</span>
               </button>
             </div>
           )}

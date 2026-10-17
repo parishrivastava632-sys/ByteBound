@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { X, Sparkles, AlertTriangle, ShieldCheck, Mail, Lock } from "lucide-react";
+import { X, Sparkles, AlertTriangle, Mail, Lock, ArrowRightLeft } from "lucide-react";
 import {
   auth,
   googleProvider,
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signOut,
   isFirebaseConfigured,
 } from "../firebase";
 
@@ -18,30 +19,47 @@ export default function AuthModal({ isOpen, onClose, onDemoLogin }) {
 
   if (!isOpen) return null;
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = async (forceSwitch = false) => {
     setErrorMsg("");
     setIsLoading(true);
     if (!isFirebaseConfigured || !auth) {
-      // Graceful fallback to demo mode
-      onDemoLogin({
-        uid: "google_demo_creator",
-        email: "google.creator@omnimedia.studio",
-        displayName: "Google Creator",
-      });
-      onClose();
+      setErrorMsg("Firebase is not configured. Please enable Google sign-in in Firebase Console.");
+      setIsLoading(false);
       return;
     }
 
     try {
+      if (forceSwitch && auth.currentUser) {
+        await signOut(auth);
+      }
+
+      if (googleProvider) {
+        googleProvider.setCustomParameters({
+          prompt: "select_account",
+          login_hint: email || "",
+        });
+      }
+
       await signInWithPopup(auth, googleProvider);
       onClose();
     } catch (err) {
       console.warn("Firebase Auth error:", err);
-      setErrorMsg(err.message || "Google sign-in encountered an issue.");
+
+      const code = err?.code;
+      if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+        setErrorMsg("Google sign-in was closed before completion. Please try again and allow the popup window.");
+      } else if (code === "auth/popup-blocked") {
+        setErrorMsg("The Google sign-in popup was blocked by the browser. Please allow popups and try again.");
+      } else if (code === "auth/unauthorized-domain") {
+        setErrorMsg("This domain is not authorized in Firebase. Add localhost and your deployed domain under Authentication > Settings > Authorized domains.");
+      } else {
+        setErrorMsg(err.message || "Google sign-in encountered an issue.");
+      }
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const handleEmailAuth = async (e) => {
     e.preventDefault();
@@ -71,6 +89,7 @@ export default function AuthModal({ isOpen, onClose, onDemoLogin }) {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -105,7 +124,7 @@ export default function AuthModal({ isOpen, onClose, onDemoLogin }) {
             <div className="flex items-start space-x-2">
               <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <div className="text-xs text-amber-200">
-                <span className="font-bold">Local Development Mode Active:</span> Firebase keys are unconfigured or using placeholders. You can use instant 1-click Demo Sign-In below!
+                <span className="font-bold">Firebase not configured:</span> Please enable Google Auth and Email/Password in Firebase Console.
               </div>
             </div>
           </div>
@@ -121,7 +140,7 @@ export default function AuthModal({ isOpen, onClose, onDemoLogin }) {
         {/* Google Sign-in */}
         <button
           type="button"
-          onClick={handleGoogleSignIn}
+          onClick={() => handleGoogleSignIn(Boolean(auth?.currentUser))}
           disabled={isLoading}
           className="w-full py-2.5 px-4 rounded-xl font-semibold text-xs text-slate-100 bg-studio-900 hover:bg-studio-800 border border-white/10 hover:border-white/25 flex items-center justify-center space-x-2.5 transition-all mb-4 shadow-sm"
         >
@@ -143,8 +162,31 @@ export default function AuthModal({ isOpen, onClose, onDemoLogin }) {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
             />
           </svg>
-          <span>Continue with Google</span>
+          <span>{auth?.currentUser ? "Use another Google account" : "Continue with Google"}</span>
         </button>
+
+        {auth?.currentUser && (
+          <button
+            type="button"
+            onClick={async () => {
+              setErrorMsg("");
+              setIsLoading(true);
+              try {
+                await signOut(auth);
+                setErrorMsg("Current account signed out. You can now sign in with a different account.");
+              } catch (err) {
+                setErrorMsg(err.message || "Could not sign out the current account.");
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+            disabled={isLoading}
+            className="w-full mb-4 py-2 rounded-xl text-xs font-medium text-slate-200 border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center space-x-2"
+          >
+            <ArrowRightLeft className="w-4 h-4" />
+            <span>Sign out current account</span>
+          </button>
+        )}
 
         {/* Divider */}
         <div className="relative my-4 flex items-center justify-center">
@@ -199,25 +241,6 @@ export default function AuthModal({ isOpen, onClose, onDemoLogin }) {
             {isRegister ? "Create Account" : "Sign In with Email"}
           </button>
         </form>
-
-        {/* Demo Fast Login Button */}
-        <div className="mt-4 pt-3 border-t border-white/10">
-          <button
-            type="button"
-            onClick={() => {
-              onDemoLogin({
-                uid: "demo_guest_creator",
-                email: "guest.creator@omnimedia.studio",
-                displayName: "Guest Creator",
-              });
-              onClose();
-            }}
-            className="w-full py-2 rounded-xl text-xs font-semibold text-brand-cyan hover:text-white bg-brand-cyan/10 hover:bg-brand-cyan/20 border border-brand-cyan/30 flex items-center justify-center space-x-1.5 transition-all"
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>Enter Studio as Demo Creator (Instant Access)</span>
-          </button>
-        </div>
 
         {/* Toggle sign in / register */}
         <div className="mt-3 text-center">

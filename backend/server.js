@@ -5,6 +5,7 @@ const path = require("path");
 const fs = require("fs");
 const admin = require("firebase-admin");
 const { GoogleGenAI } = require("@google/genai");
+const { loadProjects, upsertProject, deleteProject } = require("./local-store");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -39,8 +40,7 @@ app.use((err, req, res, next) => {
 let firestoreDb = null;
 let isFirestoreLive = false;
 
-// In-memory fallback repository for local offline development
-const localProjectsStore = [];
+const localProjectsStore = loadProjects();
 
 const hasGcpCredentials = Boolean(
   process.env.GOOGLE_APPLICATION_CREDENTIALS ||
@@ -414,9 +414,11 @@ ${content}`;
         isFirestoreLive = false;
       }
       localProjectsStore.unshift(record);
+      upsertProject(record);
     }
   } else {
     localProjectsStore.unshift(record);
+    upsertProject(record);
   }
 
   return res.status(200).json({
@@ -481,6 +483,7 @@ app.delete("/api/projects/:id", authenticateUser, async (req, res) => {
   const idx = localProjectsStore.findIndex((p) => p.id === id);
   if (idx !== -1) {
     localProjectsStore.splice(idx, 1);
+    deleteProject(id);
   }
 
   return res.status(200).json({ success: true, message: "Project deleted" });

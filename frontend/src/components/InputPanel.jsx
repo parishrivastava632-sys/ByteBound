@@ -41,6 +41,9 @@ export default function InputPanel({
   const platforms = [
     { id: "Omnichannel", label: "Omnichannel (All)", icon: Layers },
     { id: "Shorts & Reels", label: "9:16 Shorts/TikTok", icon: Target },
+    { id: "Instagram", label: "Instagram Reels", icon: Target },
+    { id: "Facebook", label: "Facebook Post", icon: Share2 },
+    { id: "YouTube", label: "YouTube Video", icon: Wand2 },
     { id: "X Thread", label: "X (Twitter) Thread", icon: Share2 },
     { id: "LinkedIn", label: "LinkedIn Article", icon: Wand2 },
   ];

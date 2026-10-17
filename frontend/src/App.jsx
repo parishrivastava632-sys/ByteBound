@@ -8,8 +8,34 @@ import ProjectHistorySidebar from "./components/ProjectHistorySidebar";
 import AuthModal from "./components/AuthModal";
 import SamplePromptsModal from "./components/SamplePromptsModal";
 import { AlertCircle, History, Sparkles, CheckCircle2 } from "lucide-react";
+import {
+  loadStudioPreferences,
+  saveStudioPreferences,
+  loadSavedProjects,
+  saveSavedProjects,
+} from "./utils/localStorage";
 
 const API_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/+$/, "") : "";
+const RECENT_ACCOUNTS_KEY = "omnimedia-recent-accounts";
+
+function loadRecentAccounts() {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const raw = window.localStorage.getItem(RECENT_ACCOUNTS_KEY);
+    if (!raw) {
+      return [];
+    }
+
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+  } catch (err) {
+    console.warn("⚠️ [Local Storage] Failed to read recent accounts:", err.message);
+    return [];
+  }
+}
 
 export default function App() {
   // Authentication State
@@ -19,10 +45,11 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Studio Generation State
-  const [content, setContent] = useState("");
-  const [targetAudience, setTargetAudience] = useState("Tech Enthusiasts, Creators, Founders");
-  const [platformFocus, setPlatformFocus] = useState("Omnichannel");
-  const [generatedData, setGeneratedData] = useState(null);
+  const initialStudioState = loadStudioPreferences();
+  const [content, setContent] = useState(initialStudioState.content);
+  const [targetAudience, setTargetAudience] = useState(initialStudioState.targetAudience);
+  const [platformFocus, setPlatformFocus] = useState(initialStudioState.platformFocus);
+  const [generatedData, setGeneratedData] = useState(initialStudioState.generatedData);
   const [activeProjectId, setActiveProjectId] = useState(null);
 
   // Loading & Progress
@@ -32,8 +59,40 @@ export default function App() {
   const [successToast, setSuccessToast] = useState("");
 
   // Projects History
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState(() => loadSavedProjects());
   const [backendHealth, setBackendHealth] = useState(null);
+  const [recentAccounts, setRecentAccounts] = useState(() => loadRecentAccounts());
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(RECENT_ACCOUNTS_KEY, JSON.stringify(recentAccounts.slice(0, 4)));
+    }
+  }, [recentAccounts]);
+
+  useEffect(() => {
+    saveStudioPreferences({ content, targetAudience, platformFocus, generatedData });
+  }, [content, targetAudience, platformFocus, generatedData]);
+
+  useEffect(() => {
+    saveSavedProjects(projects);
+  }, [projects]);
+
+  const addRecentAccount = useCallback((account) => {
+    if (!account || !account.email) {
+      return;
+    }
+
+    const normalized = {
+      uid: account.uid,
+      email: account.email,
+      displayName: account.displayName || account.email.split("@")[0],
+    };
+
+    setRecentAccounts((prev) => {
+      const filtered = prev.filter((item) => item.email !== normalized.email);
+      return [normalized, ...filtered].slice(0, 4);
+    });
+  }, []);
 
   // Monitor Auth State
   useEffect(() => {
@@ -41,8 +100,12 @@ export default function App() {
       const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
         if (currentUser) {
           setUser(currentUser);
+          addRecentAccount({
+            uid: currentUser.uid,
+            email: currentUser.email,
+            displayName: currentUser.displayName || currentUser.email?.split("@")[0] || "Studio User",
+          });
         } else {
-          // Initialize guest demo user for frictionless local development
           setUser({
             uid: "demo-studio-guest",
             email: "guest@omnimedia.studio",
@@ -52,14 +115,13 @@ export default function App() {
       });
       return () => unsubscribe();
     } else {
-      // Standalone dev mode
       setUser({
         uid: "demo-studio-guest",
         email: "guest@omnimedia.studio",
         displayName: "Studio Creator (Demo)",
       });
     }
-  }, []);
+  }, [addRecentAccount]);
 
   // Fetch Backend Health & Saved Projects
   const checkHealth = useCallback(async () => {
@@ -92,6 +154,7 @@ export default function App() {
       }
     } catch (err) {
       console.warn("Could not fetch project history:", err.message);
+      setProjects(loadSavedProjects());
     }
   }, [user]);
 
@@ -248,6 +311,11 @@ export default function App() {
     });
   };
 
+  const handleSwitchAccount = async () => {
+    await handleSignOut();
+    setIsAuthModalOpen(true);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-studio-950 text-slate-100">
       {/* Top Navbar */}
@@ -255,6 +323,8 @@ export default function App() {
         user={user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
         onSignOut={handleSignOut}
+        onSwitchAccount={handleSwitchAccount}
+        recentAccounts={recentAccounts}
         onOpenSamples={() => setIsSamplesModalOpen(true)}
         onNewProject={handleNewProject}
         backendHealth={backendHealth}
