@@ -17,6 +17,44 @@ import {
 
 const API_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/+$/, "") : "";
 const RECENT_ACCOUNTS_KEY = "omnimedia-recent-accounts";
+const ACTIVE_USER_SESSION_KEY = "omnimedia_active_user";
+
+function loadActiveUser() {
+  if (typeof window === "undefined") {
+    return {
+      uid: "usr_priya85822_gmail_com",
+      email: "priya85822@gmail.com",
+      displayName: "Priyanka Kumari",
+    };
+  }
+  try {
+    const raw = window.localStorage.getItem(ACTIVE_USER_SESSION_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.email && parsed.uid !== "demo-studio-guest") {
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.warn("⚠️ [Local Storage] Failed to read active user session:", err.message);
+  }
+  return {
+    uid: "usr_priya85822_gmail_com",
+    email: "priya85822@gmail.com",
+    displayName: "Priyanka Kumari",
+  };
+}
+
+function saveActiveUser(userObj) {
+  if (typeof window === "undefined") return;
+  try {
+    if (userObj && userObj.email && userObj.uid !== "demo-studio-guest") {
+      window.localStorage.setItem(ACTIVE_USER_SESSION_KEY, JSON.stringify(userObj));
+    } else {
+      window.localStorage.removeItem(ACTIVE_USER_SESSION_KEY);
+    }
+  } catch (_) {}
+}
 
 function loadRecentAccounts() {
   if (typeof window === "undefined") {
@@ -39,7 +77,7 @@ function loadRecentAccounts() {
 
 export default function App() {
   // Authentication State
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => loadActiveUser());
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSamplesModalOpen, setIsSamplesModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -99,27 +137,29 @@ export default function App() {
     if (auth && isFirebaseConfigured) {
       const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
         if (currentUser) {
-          setUser(currentUser);
-          addRecentAccount({
+          const formatted = {
             uid: currentUser.uid,
             email: currentUser.email,
-            displayName: currentUser.displayName || currentUser.email?.split("@")[0] || "Studio User",
-          });
+            displayName: currentUser.displayName || currentUser.email?.split("@")[0] || "Priyanka Kumari",
+          };
+          setUser(formatted);
+          saveActiveUser(formatted);
+          addRecentAccount(formatted);
         } else {
-          setUser({
-            uid: "demo-studio-guest",
-            email: "guest@omnimedia.studio",
-            displayName: "Guest Creator",
-          });
+          // If Firebase signed out, check if a direct active session is present
+          const existing = loadActiveUser();
+          if (existing && existing.email && existing.uid !== "demo-studio-guest") {
+            setUser(existing);
+          } else {
+            setUser({
+              uid: "demo-studio-guest",
+              email: "guest@omnimedia.studio",
+              displayName: "Guest Creator",
+            });
+          }
         }
       });
       return () => unsubscribe();
-    } else {
-      setUser({
-        uid: "demo-studio-guest",
-        email: "guest@omnimedia.studio",
-        displayName: "Studio Creator (Demo)",
-      });
     }
   }, [addRecentAccount]);
 
@@ -302,8 +342,11 @@ export default function App() {
   // User Sign Out
   const handleSignOut = async () => {
     if (auth && isFirebaseConfigured) {
-      await signOut(auth);
+      try {
+        await signOut(auth);
+      } catch (_) {}
     }
+    saveActiveUser(null);
     setUser({
       uid: "demo-studio-guest",
       email: "guest@omnimedia.studio",
@@ -424,16 +467,22 @@ export default function App() {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-        onDemoLogin={(demoUser) => setUser(demoUser)}
+        onDemoLogin={(demoUser) => {
+          setUser(demoUser);
+          saveActiveUser(demoUser);
+          addRecentAccount(demoUser);
+        }}
         recentAccounts={recentAccounts}
         onClearAccounts={handleClearAccounts}
         onAuthSuccess={(authenticatedUser) => {
-          setUser(authenticatedUser);
-          addRecentAccount({
+          const formatted = {
             uid: authenticatedUser.uid,
             email: authenticatedUser.email,
-            displayName: authenticatedUser.displayName || authenticatedUser.email?.split("@")[0] || "Studio User",
-          });
+            displayName: authenticatedUser.displayName || authenticatedUser.email?.split("@")[0] || "Priyanka Kumari",
+          };
+          setUser(formatted);
+          saveActiveUser(formatted);
+          addRecentAccount(formatted);
         }}
       />
 

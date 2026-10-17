@@ -84,15 +84,18 @@ export default function Navbar({
           {/* User Auth Info */}
           {user && user.email && user.email !== "guest@omnimedia.studio" && user.uid !== "demo-studio-guest" ? (
             <div className="flex items-center space-x-2 pl-2 border-l border-white/10">
-              <div className="flex items-center space-x-2 px-2.5 py-1 rounded-lg bg-studio-900 border border-white/10">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-brand-purple to-brand-cyan flex items-center justify-center text-[11px] font-bold text-white uppercase">
-                  {user.displayName ? user.displayName[0] : (user.email ? user.email[0] : "U")}
+              <div className="flex items-center space-x-2 px-2.5 py-1 rounded-lg bg-studio-900 border border-white/10 shadow-sm">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-brand-purple to-brand-cyan flex items-center justify-center text-[11px] font-bold text-white uppercase shadow-sm shrink-0">
+                  {user.displayName ? user.displayName[0] : (user.email ? user.email[0] : "P")}
                 </div>
-                <div className="text-left hidden lg:block">
-                  <div className="text-xs font-semibold text-slate-200 truncate max-w-[120px]">
-                    {user.displayName || user.email?.split("@")[0] || "Studio User"}
+                <div className="text-left flex flex-col justify-center">
+                  <div className="text-xs font-semibold text-slate-100 truncate max-w-[100px] sm:max-w-[140px] leading-tight">
+                    {user.displayName || user.email?.split("@")[0] || "Priyanka Kumari"}
                   </div>
-                  <div className="text-[10px] text-brand-cyan font-mono">Active Session</div>
+                  <div className="text-[10px] text-brand-cyan font-mono flex items-center space-x-1 leading-tight">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
+                    <span>Active Session</span>
+                  </div>
                 </div>
               </div>
               {recentAccounts.length > 0 && (
