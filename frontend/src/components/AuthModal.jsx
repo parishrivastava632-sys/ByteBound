@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { X, Sparkles, AlertTriangle, Mail, Lock, ArrowRightLeft } from "lucide-react";
+import { X, Sparkles, AlertTriangle, Mail, Lock, UserCheck, Trash2 } from "lucide-react";
 import {
   auth,
-  googleProvider,
+  GoogleAuthProvider,
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -10,7 +10,14 @@ import {
   isFirebaseConfigured,
 } from "../firebase";
 
-export default function AuthModal({ isOpen, onClose, onDemoLogin }) {
+export default function AuthModal({
+  isOpen,
+  onClose,
+  onDemoLogin,
+  onAuthSuccess,
+  recentAccounts = [],
+  onClearAccounts,
+}) {
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,39 +26,40 @@ export default function AuthModal({ isOpen, onClose, onDemoLogin }) {
 
   if (!isOpen) return null;
 
-  const handleGoogleSignIn = async (forceSwitch = false) => {
+  const handleGoogleSignIn = async () => {
     setErrorMsg("");
     setIsLoading(true);
+
     if (!isFirebaseConfigured || !auth) {
-      setErrorMsg("Firebase is not configured. Please enable Google sign-in in Firebase Console.");
+      setErrorMsg("Firebase is not configured. Please enable Google Sign-In in Firebase Console.");
       setIsLoading(false);
       return;
     }
 
     try {
-      if (forceSwitch && auth.currentUser) {
+      // Ensure previous session is cleared so Google always shows the account chooser
+      try {
         await signOut(auth);
-      }
+      } catch (_) {}
 
-      if (googleProvider) {
-        googleProvider.setCustomParameters({
-          prompt: "select_account",
-          login_hint: email || "",
-        });
-      }
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({
+        prompt: "select_account",
+      });
 
-      await signInWithPopup(auth, googleProvider);
+      const credential = await signInWithPopup(auth, provider);
+      onAuthSuccess(credential.user);
       onClose();
     } catch (err) {
-      console.warn("Firebase Auth error:", err);
+      console.warn("Google Auth error:", err);
 
       const code = err?.code;
       if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
-        setErrorMsg("Google sign-in was closed before completion. Please try again and allow the popup window.");
+        setErrorMsg("Google sign-in was closed before completion. Please try again.");
       } else if (code === "auth/popup-blocked") {
-        setErrorMsg("The Google sign-in popup was blocked by the browser. Please allow popups and try again.");
+        setErrorMsg("The Google sign-in popup was blocked by your browser. Please allow popups and try again.");
       } else if (code === "auth/unauthorized-domain") {
-        setErrorMsg("This domain is not authorized in Firebase. Add localhost and your deployed domain under Authentication > Settings > Authorized domains.");
+        setErrorMsg("This domain is not authorized in Firebase. Add localhost to Authorized domains in Firebase Console.");
       } else {
         setErrorMsg(err.message || "Google sign-in encountered an issue.");
       }
@@ -60,7 +68,6 @@ export default function AuthModal({ isOpen, onClose, onDemoLogin }) {
     }
   };
 
-
   const handleEmailAuth = async (e) => {
     e.preventDefault();
     setErrorMsg("");
@@ -68,7 +75,7 @@ export default function AuthModal({ isOpen, onClose, onDemoLogin }) {
 
     if (!isFirebaseConfigured || !auth) {
       onDemoLogin({
-        uid: `demo_user_${Date.now()}`,
+        uid: `user_${Date.now()}`,
         email: email || "creator@omnimedia.studio",
         displayName: email ? email.split("@")[0] : "Studio Creator",
       });
@@ -78,9 +85,11 @@ export default function AuthModal({ isOpen, onClose, onDemoLogin }) {
 
     try {
       if (isRegister) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const credential = await createUserWithEmailAndPassword(auth, email, password);
+        onAuthSuccess(credential.user);
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        const credential = await signInWithEmailAndPassword(auth, email, password);
+        onAuthSuccess(credential.user);
       }
       onClose();
     } catch (err) {
@@ -90,6 +99,14 @@ export default function AuthModal({ isOpen, onClose, onDemoLogin }) {
     }
   };
 
+  const handleGuestContinue = () => {
+    onDemoLogin({
+      uid: "demo-studio-guest",
+      email: "guest@omnimedia.studio",
+      displayName: "Guest Creator",
+    });
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -124,7 +141,7 @@ export default function AuthModal({ isOpen, onClose, onDemoLogin }) {
             <div className="flex items-start space-x-2">
               <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <div className="text-xs text-amber-200">
-                <span className="font-bold">Firebase not configured:</span> Please enable Google Auth and Email/Password in Firebase Console.
+                <span className="font-bold">Offline / Sandbox Mode:</span> Submitting with any email will launch an instant local studio session.
               </div>
             </div>
           </div>
@@ -140,9 +157,9 @@ export default function AuthModal({ isOpen, onClose, onDemoLogin }) {
         {/* Google Sign-in */}
         <button
           type="button"
-          onClick={() => handleGoogleSignIn(Boolean(auth?.currentUser))}
+          onClick={handleGoogleSignIn}
           disabled={isLoading}
-          className="w-full py-2.5 px-4 rounded-xl font-semibold text-xs text-slate-100 bg-studio-900 hover:bg-studio-800 border border-white/10 hover:border-white/25 flex items-center justify-center space-x-2.5 transition-all mb-4 shadow-sm"
+          className="w-full py-2.5 px-4 rounded-xl font-semibold text-xs text-slate-100 bg-studio-900 hover:bg-studio-800 border border-white/10 hover:border-brand-purple/40 flex items-center justify-center space-x-2.5 transition-all mb-3 shadow-sm"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -162,30 +179,44 @@ export default function AuthModal({ isOpen, onClose, onDemoLogin }) {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
             />
           </svg>
-          <span>{auth?.currentUser ? "Use another Google account" : "Continue with Google"}</span>
+          <span>Continue with Google</span>
         </button>
 
-        {auth?.currentUser && (
-          <button
-            type="button"
-            onClick={async () => {
-              setErrorMsg("");
-              setIsLoading(true);
-              try {
-                await signOut(auth);
-                setErrorMsg("Current account signed out. You can now sign in with a different account.");
-              } catch (err) {
-                setErrorMsg(err.message || "Could not sign out the current account.");
-              } finally {
-                setIsLoading(false);
-              }
-            }}
-            disabled={isLoading}
-            className="w-full mb-4 py-2 rounded-xl text-xs font-medium text-slate-200 border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center space-x-2"
-          >
-            <ArrowRightLeft className="w-4 h-4" />
-            <span>Sign out current account</span>
-          </button>
+        {/* Recent accounts quick switch */}
+        {recentAccounts && recentAccounts.length > 0 && (
+          <div className="mb-4 p-3 rounded-xl bg-white/5 border border-white/10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                Saved Accounts
+              </span>
+              {onClearAccounts && (
+                <button
+                  type="button"
+                  onClick={onClearAccounts}
+                  className="text-[10px] text-red-400 hover:text-red-300 flex items-center space-x-1"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  <span>Clear All</span>
+                </button>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              {recentAccounts.map((acc) => (
+                <button
+                  key={acc.email}
+                  type="button"
+                  onClick={() => setEmail(acc.email)}
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-studio-900/80 hover:bg-studio-800 border border-white/5 hover:border-brand-purple/30 text-left flex items-center justify-between text-xs transition-colors"
+                >
+                  <div className="flex items-center space-x-2 truncate">
+                    <UserCheck className="w-3.5 h-3.5 text-brand-cyan shrink-0" />
+                    <span className="text-slate-200 truncate">{acc.email}</span>
+                  </div>
+                  <span className="text-[10px] text-brand-purple font-mono">Select</span>
+                </button>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Divider */}
@@ -252,6 +283,17 @@ export default function AuthModal({ isOpen, onClose, onDemoLogin }) {
             {isRegister
               ? "Already have an account? Sign in"
               : "Don't have an account? Register"}
+          </button>
+        </div>
+
+        {/* Guest fallback button */}
+        <div className="mt-4 pt-3 border-t border-white/10 text-center">
+          <button
+            type="button"
+            onClick={handleGuestContinue}
+            className="text-xs text-slate-400 hover:text-white transition-colors"
+          >
+            Or continue as <span className="text-brand-cyan underline">Guest Creator</span>
           </button>
         </div>
       </div>

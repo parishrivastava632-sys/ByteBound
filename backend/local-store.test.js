@@ -5,7 +5,15 @@ const { loadProjects, saveProjects, upsertProject, deleteProject } = require('./
 const tempDir = require('node:path').join(__dirname, '.tmp-local-store-test');
 const tempFile = require('node:path').join(tempDir, 'projects.json');
 
+const fs = require('node:fs');
+if (fs.existsSync(tempFile)) {
+  fs.unlinkSync(tempFile);
+}
+
 test('loadProjects returns an empty list when the file does not exist', () => {
+  if (fs.existsSync(tempFile)) {
+    fs.unlinkSync(tempFile);
+  }
   const result = loadProjects(tempFile);
   assert.deepEqual(result, []);
 });

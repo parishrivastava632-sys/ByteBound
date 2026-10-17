@@ -32,14 +32,12 @@ export const isFirebaseConfigured = Boolean(
 let app = null;
 let auth = null;
 let db = null;
-let googleProvider = null;
 
 try {
   if (firebaseConfig.apiKey) {
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
     auth = getAuth(app);
     db = getFirestore(app);
-    googleProvider = new GoogleAuthProvider();
 
     setPersistence(auth, browserSessionPersistence).catch((err) => {
       console.warn("⚠️ [Firebase] Could not set session persistence:", err?.message || err);
@@ -52,7 +50,7 @@ try {
 export {
   auth,
   db,
-  googleProvider,
+  GoogleAuthProvider,
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,

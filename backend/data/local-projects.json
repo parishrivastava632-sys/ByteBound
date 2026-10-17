@@ -1,5 +1,78 @@
 [
   {
+    "id": "proj_1792242720250_2jrbc",
+    "userId": "creator-studio-demo",
+    "rawInput": "Google announced Gemini 2.5 Flash, the newest multimodal AI model engineered for sub-second responses and long context reasoning. Developers can deploy autonomous workflows in minutes.",
+    "targetAudience": "AI Engineers & Tech Creators",
+    "platformFocus": "Omnichannel",
+    "output": {
+      "productionSummary": {
+        "title": "OmniMedia Spotlight: Google announced Gemini 2",
+        "coreThesis": "Google announced Gemini 2.5 Flash, the newest multimodal AI model engineered for sub-second responses and long context reasoning. Developers can deploy autonomo...",
+        "targetAudience": "Tech Leaders, Digital Creators, Growth Strategists, & Modern Media Teams",
+        "predictedViralityScore": 84
+      },
+      "shortFormVideo": {
+        "estimatedDurationSeconds": 45,
+        "scenes": [
+          {
+            "timecode": "0:00 - 0:06",
+            "audioScript": "Stop scrolling if you care about how content is actually built today. Here is the big shift: \"Google announced Gemini 2.5 Flash, the newest multimodal AI ...\"",
+            "visualCue": "High-contrast kinetic typography with dynamic neon accent glow and zoom-in camera punch.",
+            "onScreenText": "🚨 THE PARADIGM SHIFT"
+          },
+          {
+            "timecode": "0:06 - 0:18",
+            "audioScript": "Most teams waste 20+ hours repurposing one long-form video. But an autonomous pipeline dissects transcripts into storyboards in seconds.",
+            "visualCue": "Split-screen visualization: Traditional manual editing timeline vs instantaneous OmniMedia AI pipeline.",
+            "onScreenText": "20 HOURS ➔ 2 SECONDS"
+          },
+          {
+            "timecode": "0:18 - 0:32",
+            "audioScript": "Notice how the narrative tension builds: you don't just extract quotes, you isolate the viral thesis and convert it into timed audio cues.",
+            "visualCue": "Interactive waveform animation pulsing with high-energy sound design markers and chapter cuts.",
+            "onScreenText": "AUDIO SCRIPT + TIME-CODED PACING"
+          },
+          {
+            "timecode": "0:32 - 0:45",
+            "audioScript": "If you're ready to scale your omnichannel footprint across TikTok, X, and LinkedIn without burning out, check out OmniMedia AI Studio.",
+            "visualCue": "Sleek studio dashboard mockup rotating in 3D perspective with final call-to-action badge.",
+            "onScreenText": "LAUNCH YOUR OMNI-STUDIO NOW 🚀"
+          }
+        ]
+      },
+      "socialPackage": {
+        "xThread": [
+          "🧵 1/5 The way we produce digital media just fundamentally changed.\n\nHere is what happens when you turn long-form transcripts into structured short-form video storyboards in 3 seconds:\n\n👇",
+          "2/5 The core bottleneck was never ideas—it was format translation.\n\nTaking 45 minutes of spoken context and mapping it to 9:16 vertical storytelling requires:\n• Hook timing (0-3s)\n• Visual cue synchronization\n• Timecoded audio scripts",
+          "3/5 Key insight from the transcript:\n\n\"Google announced Gemini 2\"\n\nWhen you decouple the core thesis from the presentation layer, you can distribute to 4 platforms simultaneously.",
+          "4/5 Here is the viral playbook:\n1. 45s High-retention vertical clip\n2. 5-part tactical X thread\n3. Executive LinkedIn synthesis\n4. Targeted search taxonomy",
+          "5/5 Autonomous pre-production is the multiplier for high-output teams.\n\nTry building your next media package with OmniMedia AI Studio: built on Gemini 2.5 Flash & Cloud Run. 💡"
+        ],
+        "linkedInPost": "Transforming long-form knowledge into high-retention digital assets is no longer a multi-day editorial bottleneck.\n\n\"Google announced Gemini 2\"\n\nIn our latest OmniMedia AI Studio synthesis, we explored how an autonomous media engine extracts key narrative arcs and generates production-ready assets:\n\n🔹 Timecoded 9:16 short-form video storyboards\n🔹 Viral platform-native social threads\n🔹 Granular taxonomy and SEO indexing\n\nBy leveraging Gemini 2.5 Flash on Google Cloud Run, content teams can move from raw transcripts to omnichannel distribution in seconds.\n\nWhat is your biggest bottleneck in media repurposing today?\n\n#ArtificialIntelligence #ContentStrategy #MediaInnovation #CloudRun #OmniMedia"
+      },
+      "seoAndTaxonomy": {
+        "primaryKeywords": [
+          "autonomous media generation",
+          "gemini 2.5 flash",
+          "short form video storyboard",
+          "content repurposing",
+          "social media automation",
+          "omnichannel strategy"
+        ],
+        "hashtags": [
+          "#OmniMedia",
+          "#ContentCreation",
+          "#AIInnovation",
+          "#GeminiAI",
+          "#Storyboarding",
+          "#GrowthMarketing"
+        ]
+      }
+    },
+    "createdAt": "2026-10-17T13:12:00.250Z"
+  },
+  {
     "id": "proj_1792241876765_0mt7c",
     "userId": "demo-studio-guest",
     "rawInput": "Welcome back to the Future of Technology podcast. Today, we're exploring how AI agents are changing the way businesses operate. Unlike traditional chatbots, AI agents can plan tasks, use tools, analyze information, and take action with minimal human intervention.\n\nImagine a marketing team that can automatically research competitors, draft campaign ideas, prepare social media posts, and analyze performance reports. Humans still provide direction and oversight, but repetitive work becomes faster.\n\nThe real challenge isn't simply building smarter AI. It's creating reliable systems that are transparent, secure, and genuinely useful. In the next five years, the companies that succeed will be those that combine human creativity with responsible AI automation.",

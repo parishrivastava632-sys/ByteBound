@@ -5,6 +5,8 @@ node_modules/
 
 # Testing & Coverage
 coverage/
+.tmp-local-store-test/
+backend/.tmp-local-store-test/
 
 # Production Build
 dist/

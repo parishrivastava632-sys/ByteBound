@@ -311,6 +311,13 @@ export default function App() {
     });
   };
 
+  const handleClearAccounts = () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(RECENT_ACCOUNTS_KEY);
+    }
+    setRecentAccounts([]);
+  };
+
   const handleSwitchAccount = async () => {
     await handleSignOut();
     setIsAuthModalOpen(true);
@@ -418,6 +425,16 @@ export default function App() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         onDemoLogin={(demoUser) => setUser(demoUser)}
+        recentAccounts={recentAccounts}
+        onClearAccounts={handleClearAccounts}
+        onAuthSuccess={(authenticatedUser) => {
+          setUser(authenticatedUser);
+          addRecentAccount({
+            uid: authenticatedUser.uid,
+            email: authenticatedUser.email,
+            displayName: authenticatedUser.displayName || authenticatedUser.email?.split("@")[0] || "Studio User",
+          });
+        }}
       />
 
       <SamplePromptsModal
