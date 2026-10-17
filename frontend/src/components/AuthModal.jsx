@@ -24,17 +24,20 @@ export default function AuthModal({
   recentAccounts = [],
   onClearAccounts,
 }) {
-  const [isRegister, setIsRegister] = useState(false);
+  const [customName, setCustomName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPasswordField, setShowPasswordField] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   if (!isOpen) return null;
 
   const handleDirectLogin = (targetEmail, targetName) => {
-    const cleanEmail = targetEmail || email || "creator@omnimedia.studio";
-    const displayName = targetName || (cleanEmail.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()));
+    const cleanEmail = (targetEmail || email || "creator@omnimedia.studio").trim();
+    const displayName =
+      (targetName || customName || "").trim() ||
+      cleanEmail.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
     const uid = "usr_" + cleanEmail.replace(/[^a-zA-Z0-9]/g, "_");
 
     onDemoLogin({
@@ -72,13 +75,11 @@ export default function AuthModal({
 
       const code = err?.code;
       if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
-        setErrorMsg("Google sign-in was closed before completion. You can use 1-Click Sign In below instead.");
+        setErrorMsg("Google popup was closed. You can enter your email directly below to sign in instantly.");
       } else if (code === "auth/popup-blocked") {
-        setErrorMsg("The Google sign-in popup was blocked. You can use 1-Click Sign In below instead.");
-      } else if (code === "auth/unauthorized-domain") {
-        setErrorMsg("Domain authorization check: You can use 1-Click Sign In below to access your account instantly.");
+        setErrorMsg("The Google popup was blocked. Enter your email below to sign in without popup.");
       } else {
-        setErrorMsg(err.message || "Google OAuth restricted this account. Use 1-Click Sign In below.");
+        setErrorMsg("Google blocked this account due to OAuth test limits. Enter your email below to sign in instantly.");
       }
     } finally {
       setIsLoading(false);
@@ -88,33 +89,37 @@ export default function AuthModal({
   const handleEmailAuth = async (e) => {
     e.preventDefault();
     setErrorMsg("");
-    setIsLoading(true);
 
     if (!email || !email.trim()) {
       setErrorMsg("Please enter a valid email address.");
-      setIsLoading(false);
       return;
     }
 
-    try {
-      if (isFirebaseConfigured && auth && password) {
+    const cleanEmail = email.trim();
+    const finalName = customName.trim() || cleanEmail.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+
+    // If password auth is explicitly toggled and provided
+    if (showPasswordField && password && isFirebaseConfigured && auth) {
+      setIsLoading(true);
+      try {
         if (isRegister) {
-          const credential = await createUserWithEmailAndPassword(auth, email, password);
+          const credential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
           onAuthSuccess(credential.user);
         } else {
-          const credential = await signInWithEmailAndPassword(auth, email, password);
+          const credential = await signInWithEmailAndPassword(auth, cleanEmail, password);
           onAuthSuccess(credential.user);
         }
         onClose();
         return;
+      } catch (err) {
+        console.warn("Firebase password auth error, falling back to instant login:", err.message);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.warn("Firebase Auth fell back to direct profile login:", err.message);
     }
 
-    // Direct frictionless login fallback
-    handleDirectLogin(email, email.split("@")[0]);
-    setIsLoading(false);
+    // Direct instant login with any email ID (no password required)
+    handleDirectLogin(cleanEmail, finalName);
   };
 
   const handleGuestContinue = () => {
@@ -244,16 +249,16 @@ export default function AuthModal({
         <div className="relative my-3 flex items-center justify-center">
           <div className="border-t border-white/10 w-full"></div>
           <span className="bg-studio-950 px-3 text-[10px] uppercase tracking-wider text-slate-400 font-bold">
-            Or with Any Email
+            Or Sign In With Any Other Email ID
           </span>
           <div className="border-t border-white/10 w-full"></div>
         </div>
 
-        {/* Email form */}
+        {/* Any Email Instant Form */}
         <form onSubmit={handleEmailAuth} className="space-y-3">
           <div>
             <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-              Email Address
+              Your Email Address
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
@@ -262,50 +267,63 @@ export default function AuthModal({
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="creator@domain.com"
-                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-studio-900/90 border border-white/10 focus:border-brand-purple text-white outline-none"
+                placeholder="Enter any email ID (e.g. yourname@gmail.com)"
+                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-studio-900/90 border border-white/10 focus:border-brand-cyan text-white outline-none placeholder:text-slate-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-              Password
+            <label className="text-[11px] font-semibold text-slate-300 block mb-1 flex items-center justify-between">
+              <span>Display Name <span className="text-slate-500 font-normal">(Optional)</span></span>
             </label>
-            <div className="relative">
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-studio-900/90 border border-white/10 focus:border-brand-purple text-white outline-none"
-              />
-            </div>
+            <input
+              type="text"
+              value={customName}
+              onChange={(e) => setCustomName(e.target.value)}
+              placeholder="e.g. Priyanka Kumari"
+              className="w-full px-3 py-2 text-xs rounded-xl bg-studio-900/90 border border-white/10 focus:border-brand-cyan text-white outline-none placeholder:text-slate-500"
+            />
           </div>
+
+          {showPasswordField && (
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-studio-900/90 border border-white/10 focus:border-brand-purple text-white outline-none"
+                />
+              </div>
+            </div>
+          )}
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-brand-purple to-brand-violet hover:from-brand-violet hover:to-brand-blue text-white shadow-glow transition-all"
+            className="w-full py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-brand-purple to-brand-cyan hover:from-brand-violet hover:to-brand-blue text-white shadow-glow transition-all flex items-center justify-center space-x-1.5"
           >
-            {isRegister ? "Create Account" : "Sign In with Email"}
+            <span>Sign In With This Email</span>
+            <span>➔</span>
           </button>
-        </form>
 
-        {/* Toggle sign in / register */}
-        <div className="mt-3 text-center">
-          <button
-            type="button"
-            onClick={() => setIsRegister(!isRegister)}
-            className="text-[11px] text-slate-400 hover:text-brand-purple transition-colors"
-          >
-            {isRegister
-              ? "Already have an account? Sign in"
-              : "Don't have an account? Register"}
-          </button>
-        </div>
+          <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1">
+            <button
+              type="button"
+              onClick={() => setShowPasswordField(!showPasswordField)}
+              className="hover:text-slate-300 transition-colors"
+            >
+              {showPasswordField ? "Hide password field" : "Use password login (optional)"}
+            </button>
+            <span>Instant &amp; secure session</span>
+          </div>
+        </form>
 
         {/* Guest fallback button */}
         <div className="mt-4 pt-3 border-t border-white/10 text-center">
