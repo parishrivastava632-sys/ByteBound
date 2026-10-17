@@ -9,9 +9,9 @@
 [![Gemini 2.5 Flash](https://img.shields.io/badge/Gemini%202.5-Flash%20AI-8E75B2?logo=google&logoColor=white)](https://aistudio.google.com/)
 [![Firebase Auth & Firestore](https://img.shields.io/badge/Firebase-Auth%20%26%20Firestore-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![React + Tailwind](https://img.shields.io/badge/Frontend-React%2018%20%2B%20Tailwind-38B2AC?logo=react&logoColor=white)](https://react.dev/)
-[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-Cloud%20Run-00C853?logo=googlecloud&logoColor=white)](https://omnimedia-studio-api-us-central1.a.run.app)
+[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-Firebase%20Hosting-00C853?logo=firebase&logoColor=white)](https://studio-8239730419-e1c92.web.app)
 
-> 🚀 **Live Demo for Judges:** [Cloud Run Deployment](https://omnimedia-studio-api-us-central1.a.run.app) *(or launch locally in zero-config demo mode with instant dynamic synthesis)*
+> 🚀 **Live Demo for Judges:** [https://studio-8239730419-e1c92.web.app](https://studio-8239730419-e1c92.web.app) *(or launch locally in zero-config demo mode)*
 
 ---
 
