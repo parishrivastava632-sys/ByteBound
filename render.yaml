@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: omnimedia-studio-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: FIREBASE_PROJECT_ID
+        value: studio-8239730419-e1c92
+      - key: GEMINI_API_KEY
+        sync: false
