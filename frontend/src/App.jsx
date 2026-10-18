@@ -23,9 +23,9 @@ const ACTIVE_USER_SESSION_KEY = "omnimedia_active_user";
 function loadActiveUser() {
   if (typeof window === "undefined") {
     return {
-      uid: "usr_priya85822_gmail_com",
-      email: "priya85822@gmail.com",
-      displayName: "Priyanka Kumari",
+      uid: "usr_parishrivastava632_gmail_com",
+      email: "parishrivastava632@gmail.com",
+      displayName: "Pari Shrivastava",
     };
   }
   try {
@@ -40,9 +40,9 @@ function loadActiveUser() {
     console.warn("⚠️ [Local Storage] Failed to read active user session:", err.message);
   }
   return {
-    uid: "usr_priya85822_gmail_com",
-    email: "priya85822@gmail.com",
-    displayName: "Priyanka Kumari",
+    uid: "usr_parishrivastava632_gmail_com",
+    email: "parishrivastava632@gmail.com",
+    displayName: "Pari Shrivastava",
   };
 }
 
@@ -138,10 +138,17 @@ export default function App() {
     if (auth && isFirebaseConfigured) {
       const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
         if (currentUser) {
+          let displayName = currentUser.displayName;
+          if (!displayName) {
+            const e = (currentUser.email || "").toLowerCase();
+            if (e.includes("pari")) displayName = "Pari Shrivastava";
+            else if (e.includes("priya")) displayName = "Priyanka Kumari";
+            else displayName = currentUser.email?.split("@")[0] || "Pari Shrivastava";
+          }
           const formatted = {
             uid: currentUser.uid,
             email: currentUser.email,
-            displayName: currentUser.displayName || currentUser.email?.split("@")[0] || "Priyanka Kumari",
+            displayName,
           };
           setUser(formatted);
           saveActiveUser(formatted);
@@ -502,10 +509,17 @@ export default function App() {
         recentAccounts={recentAccounts}
         onClearAccounts={handleClearAccounts}
         onAuthSuccess={(authenticatedUser) => {
+          let displayName = authenticatedUser.displayName;
+          if (!displayName) {
+            const e = (authenticatedUser.email || "").toLowerCase();
+            if (e.includes("pari")) displayName = "Pari Shrivastava";
+            else if (e.includes("priya")) displayName = "Priyanka Kumari";
+            else displayName = authenticatedUser.email?.split("@")[0] || "Pari Shrivastava";
+          }
           const formatted = {
             uid: authenticatedUser.uid,
             email: authenticatedUser.email,
-            displayName: authenticatedUser.displayName || authenticatedUser.email?.split("@")[0] || "Priyanka Kumari",
+            displayName,
           };
           setUser(formatted);
           saveActiveUser(formatted);

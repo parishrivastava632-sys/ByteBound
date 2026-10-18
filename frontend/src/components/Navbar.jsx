@@ -86,7 +86,7 @@ export default function Navbar({
                 </div>
                 <div className="text-left flex flex-col justify-center">
                   <div className="text-xs font-semibold text-slate-100 truncate max-w-[100px] sm:max-w-[140px] leading-tight">
-                    {user.displayName || user.email?.split("@")[0] || "Priyanka Kumari"}
+                    {user.displayName || user.email?.split("@")[0] || "Studio Creator"}
                   </div>
                   <div className="text-[10px] text-brand-cyan font-mono flex items-center space-x-1 leading-tight">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />

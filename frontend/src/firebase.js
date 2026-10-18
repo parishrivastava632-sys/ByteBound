@@ -8,7 +8,7 @@ import {
   signOut,
   onAuthStateChanged,
   setPersistence,
-  browserSessionPersistence,
+  browserLocalPersistence,
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
@@ -39,8 +39,8 @@ try {
     auth = getAuth(app);
     db = getFirestore(app);
 
-    setPersistence(auth, browserSessionPersistence).catch((err) => {
-      console.warn("⚠️ [Firebase] Could not set session persistence:", err?.message || err);
+    setPersistence(auth, browserLocalPersistence).catch((err) => {
+      console.warn("⚠️ [Firebase] Could not set local persistence:", err?.message || err);
     });
   }
 } catch (err) {
@@ -57,5 +57,5 @@ export {
   signOut,
   onAuthStateChanged,
   setPersistence,
-  browserSessionPersistence,
+  browserLocalPersistence,
 };
