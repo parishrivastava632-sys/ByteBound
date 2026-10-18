@@ -1,5 +1,5 @@
-import React from "react";
-import { Sparkles, Video, User, LogOut, Github, Cpu, Cloud, Database, FileText, ArrowRightLeft } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { Sparkles, Video, User, LogOut, Github, Cpu, Cloud, Database, FileText, ChevronDown, RefreshCw } from "lucide-react";
 
 export default function Navbar({
   user,
@@ -11,6 +11,20 @@ export default function Navbar({
   onNewProject,
   backendHealth,
 }) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <header className="sticky top-0 z-30 border-b border-white/10 bg-studio-950/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -77,39 +91,72 @@ export default function Navbar({
             <span>New Generation</span>
           </button>
 
-          {/* User Auth Info */}
+          {/* User Auth Profile & Account Controls */}
           {user && user.email && user.email !== "guest@omnimedia.studio" && user.uid !== "demo-studio-guest" ? (
-            <div className="flex items-center space-x-2 pl-2 border-l border-white/10">
-              <div className="flex items-center space-x-2 px-2.5 py-1 rounded-lg bg-studio-900 border border-white/10 shadow-sm">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-brand-purple to-brand-cyan flex items-center justify-center text-[11px] font-bold text-white uppercase shadow-sm shrink-0">
+            <div className="relative pl-2 border-l border-white/10" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="flex items-center space-x-2 px-2.5 py-1.5 rounded-xl bg-studio-900/90 hover:bg-studio-800 border border-white/10 hover:border-brand-cyan/40 transition-all shadow-sm text-left group"
+              >
+                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-brand-purple to-brand-cyan flex items-center justify-center text-[11px] font-bold text-white uppercase shadow-sm shrink-0">
                   {user.displayName ? user.displayName[0] : (user.email ? user.email[0] : "P")}
                 </div>
-                <div className="text-left flex flex-col justify-center">
-                  <div className="text-xs font-semibold text-slate-100 truncate max-w-[100px] sm:max-w-[140px] leading-tight">
-                    {user.displayName || user.email?.split("@")[0] || "Studio Creator"}
+                <div className="hidden sm:flex flex-col justify-center max-w-[120px]">
+                  <div className="text-xs font-semibold text-slate-100 truncate group-hover:text-brand-cyan transition-colors">
+                    {user.displayName || user.email?.split("@")[0] || "Pari Shrivastava"}
                   </div>
-                  <div className="text-[10px] text-brand-cyan font-mono flex items-center space-x-1 leading-tight">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
-                    <span>Active Session</span>
+                  <div className="text-[10px] text-emerald-400 font-mono flex items-center space-x-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+                    <span>Signed In</span>
                   </div>
                 </div>
-              </div>
-              {recentAccounts.length > 0 && (
-                <button
-                  onClick={onSwitchAccount}
-                  title="Switch account"
-                  className="p-1.5 rounded-lg text-slate-300 hover:text-brand-cyan hover:bg-brand-cyan/10 transition-colors"
-                >
-                  <ArrowRightLeft className="w-4 h-4" />
-                </button>
-              )}
-              <button
-                onClick={onSignOut}
-                title="Sign out"
-                className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-colors" />
               </button>
+
+              {/* Account Dropdown */}
+              {isMenuOpen && (
+                <div className="absolute right-0 mt-2 w-64 glass-panel rounded-2xl p-3 border border-white/15 shadow-2xl z-50 animate-in fade-in zoom-in-95">
+                  <div className="p-2 mb-2 rounded-xl bg-white/5 border border-white/5">
+                    <div className="text-xs font-bold text-white">
+                      {user.displayName || "Pari Shrivastava"}
+                    </div>
+                    <div className="text-[11px] text-slate-400 font-mono truncate">
+                      {user.email}
+                    </div>
+                    <div className="mt-1 text-[9px] uppercase tracking-wider text-brand-cyan font-bold flex items-center space-x-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                      <span>Google Verified Account</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        if (onSwitchAccount) onSwitchAccount();
+                      }}
+                      className="w-full px-3 py-2 text-xs rounded-xl text-slate-200 hover:text-white hover:bg-brand-purple/20 flex items-center space-x-2 transition-colors"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5 text-brand-cyan" />
+                      <span>Switch / Change Account</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        if (onSignOut) onSignOut();
+                      }}
+                      className="w-full px-3 py-2 text-xs rounded-xl text-red-300 hover:text-red-200 hover:bg-red-500/15 flex items-center space-x-2 transition-colors"
+                    >
+                      <LogOut className="w-3.5 h-3.5 text-red-400" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex items-center space-x-2 pl-2 border-l border-white/10">
@@ -125,7 +172,7 @@ export default function Navbar({
 
           {/* GitHub Repo */}
           <a
-            href="https://github.com/GoogleCloudPlatform"
+            href="https://github.com/parishrivastava632-sys/ByteBound"
             target="_blank"
             rel="noopener noreferrer"
             title="GitHub Repository"

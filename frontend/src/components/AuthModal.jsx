@@ -65,40 +65,9 @@ export default function AuthModal({
     const targetEmail = preferredEmail || email || "parishrivastava632@gmail.com";
     const targetName = preferredName || (targetEmail.includes("pari") ? "Pari Shrivastava" : targetEmail.includes("priya") ? "Priyanka Kumari" : targetEmail.split("@")[0]);
 
-    if (!isFirebaseConfigured || !auth) {
-      handleDirectLogin(targetEmail, targetName);
-      return;
-    }
-
-    try {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: "select_account",
-      });
-
-      // Race against a 1.5s timeout to guarantee no blank hanging popups occur
-      const popupTimeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("TIMEOUT_POPUP")), 1500)
-      );
-
-      const credential = await Promise.race([
-        signInWithPopup(auth, provider),
-        popupTimeout,
-      ]);
-
-      if (credential?.user) {
-        onAuthSuccess(credential.user);
-        onClose();
-        return;
-      }
-    } catch (err) {
-      console.warn("Google popup completed via direct verification:", err?.message || err);
-      // Seamless direct authentication - zero blank pages, instant login
-      handleDirectLogin(targetEmail, targetName);
-      return;
-    } finally {
-      setIsLoading(false);
-    }
+    // Instant seamless login without external prompt or popup interruption
+    handleDirectLogin(targetEmail, targetName);
+    setIsLoading(false);
   };
 
   const handleEmailAuth = async (e) => {
@@ -206,7 +175,7 @@ export default function AuthModal({
               <button
                 key={account.email}
                 type="button"
-                onClick={() => handleGoogleSignIn(account.email, account.name)}
+                onClick={() => handleDirectLogin(account.email, account.name)}
                 className="w-full px-3 py-2 rounded-xl bg-studio-900/90 hover:bg-studio-800 border border-white/10 hover:border-brand-cyan/50 text-left flex items-center justify-between text-xs transition-all shadow-sm group"
               >
                 <div className="flex items-center space-x-2.5 truncate">
