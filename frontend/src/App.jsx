@@ -22,11 +22,7 @@ const ACTIVE_USER_SESSION_KEY = "omnimedia_active_user";
 
 function loadActiveUser() {
   if (typeof window === "undefined") {
-    return {
-      uid: "usr_parishrivastava632_gmail_com",
-      email: "parishrivastava632@gmail.com",
-      displayName: "Pari Shrivastava",
-    };
+    return null;
   }
   try {
     const raw = window.localStorage.getItem(ACTIVE_USER_SESSION_KEY);
@@ -39,11 +35,7 @@ function loadActiveUser() {
   } catch (err) {
     console.warn("⚠️ [Local Storage] Failed to read active user session:", err.message);
   }
-  return {
-    uid: "usr_parishrivastava632_gmail_com",
-    email: "parishrivastava632@gmail.com",
-    displayName: "Pari Shrivastava",
-  };
+  return null;
 }
 
 function saveActiveUser(userObj) {
@@ -159,11 +151,7 @@ export default function App() {
           if (existing && existing.email && existing.uid !== "demo-studio-guest") {
             setUser(existing);
           } else {
-            setUser({
-              uid: "demo-studio-guest",
-              email: "guest@omnimedia.studio",
-              displayName: "Guest Creator",
-            });
+            setUser(null);
           }
         }
       });
@@ -381,11 +369,7 @@ export default function App() {
       } catch (_) {}
     }
     saveActiveUser(null);
-    setUser({
-      uid: "demo-studio-guest",
-      email: "guest@omnimedia.studio",
-      displayName: "Guest Creator",
-    });
+    setUser(null);
   };
 
   const handleClearAccounts = () => {
