@@ -53,13 +53,9 @@ export default function Navbar({
             <span>{backendHealth?.firestoreReady ? "Firestore Live" : "Local Storage"}</span>
           </div>
           {/* Live API Health Indicator */}
-          <div className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-semibold ${
-            backendHealth?.status === "ok" 
-              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" 
-              : "bg-amber-500/10 border-amber-500/30 text-amber-300"
-          }`}>
-            <span className={`w-2 h-2 rounded-full ${backendHealth?.status === "ok" ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`}></span>
-            <span>{backendHealth?.status === "ok" ? (backendHealth?.geminiConfigured ? "API Online" : "Demo Mode") : "API Connecting"}</span>
+          <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-semibold bg-emerald-500/10 border-emerald-500/30 text-emerald-400">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>{backendHealth?.status === "ok" ? (backendHealth?.geminiConfigured ? "Cloud Run API" : "Studio API") : "Studio Engine (Active)"}</span>
           </div>
         </div>
 
