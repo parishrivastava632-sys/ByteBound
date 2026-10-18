@@ -152,9 +152,9 @@ export default function InputPanel({
       {/* High-Visibility Action CTA */}
       <button
         onClick={onGenerate}
-        disabled={isLoading || !content.trim()}
+        disabled={isLoading || !safeContent.trim()}
         className={`w-full py-3.5 px-6 rounded-xl font-bold text-sm tracking-wide flex items-center justify-center space-x-2.5 transition-all shadow-xl ${
-          isLoading || !content.trim()
+          isLoading || !safeContent.trim()
             ? "bg-studio-800 text-slate-500 cursor-not-allowed border border-white/5"
             : "bg-gradient-to-r from-brand-purple via-brand-violet to-brand-blue hover:from-brand-violet hover:to-brand-cyan text-white shadow-glow hover:shadow-glow-cyan hover:scale-[1.01] active:scale-[0.99] border border-white/20"
         }`}

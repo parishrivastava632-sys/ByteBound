@@ -163,12 +163,15 @@ export default function App() {
   const checkHealth = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/health`);
-      if (res.ok) {
+      const contentType = res.headers.get("content-type") || "";
+      if (res.ok && contentType.includes("application/json")) {
         const data = await res.json();
         setBackendHealth(data);
+      } else {
+        setBackendHealth(null);
       }
     } catch (err) {
-      console.warn("Backend not yet reachable on /health");
+      setBackendHealth(null);
     }
   }, []);
 
@@ -182,14 +185,17 @@ export default function App() {
           "x-user-id": user.uid || "demo-studio-guest",
         },
       });
-      if (res.ok) {
+      const contentType = res.headers.get("content-type") || "";
+      if (res.ok && contentType.includes("application/json")) {
         const data = await res.json();
         if (data.projects) {
           setProjects(data.projects);
+          return;
         }
       }
+      setProjects(loadSavedProjects());
     } catch (err) {
-      console.warn("Could not fetch project history:", err.message);
+      console.warn("Could not fetch project history from backend, using local store:", err.message);
       setProjects(loadSavedProjects());
     }
   }, [user]);
@@ -253,9 +259,18 @@ export default function App() {
 
       clearInterval(progressTimer);
 
+      if (!response.ok) {
+        throw new Error(`Server returned HTTP ${response.status}`);
+      }
+
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        throw new Error("Invalid response format received from server");
+      }
+
       const result = await response.json();
 
-      if (!response.ok || !result.success) {
+      if (!result.success) {
         throw new Error(result.error || "Generation request failed");
       }
 
@@ -337,12 +352,12 @@ export default function App() {
           "x-user-id": user?.uid || "demo-studio-guest",
         },
       });
-      setProjects((prev) => prev.filter((p) => p.id !== id));
-      if (activeProjectId === id) {
-        setActiveProjectId(null);
-      }
     } catch (err) {
-      console.warn("Failed to delete project:", err.message);
+      console.warn("Notice: Backend delete bypassed, updating local state:", err.message);
+    }
+    setProjects((prev) => prev.filter((p) => p.id !== id));
+    if (activeProjectId === id) {
+      setActiveProjectId(null);
     }
   };
 
