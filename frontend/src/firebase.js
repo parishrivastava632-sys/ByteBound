@@ -8,7 +8,7 @@ import {
   signOut,
   onAuthStateChanged,
   setPersistence,
-  browserLocalPersistence,
+  inMemoryPersistence,
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
@@ -39,8 +39,9 @@ try {
     auth = getAuth(app);
     db = getFirestore(app);
 
-    setPersistence(auth, browserLocalPersistence).catch((err) => {
-      console.warn("⚠️ [Firebase] Could not set local persistence:", err?.message || err);
+    // Require explicit sign-in each session; never silently auto-authenticate on refresh
+    setPersistence(auth, inMemoryPersistence).catch((err) => {
+      console.warn("⚠️ [Firebase] Could not set in-memory persistence:", err?.message || err);
     });
   }
 } catch (err) {
@@ -57,5 +58,5 @@ export {
   signOut,
   onAuthStateChanged,
   setPersistence,
-  browserLocalPersistence,
+  inMemoryPersistence,
 };

@@ -21,30 +21,18 @@ const RECENT_ACCOUNTS_KEY = "omnimedia-recent-accounts";
 const ACTIVE_USER_SESSION_KEY = "omnimedia_active_user";
 
 function loadActiveUser() {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  try {
-    const raw = window.localStorage.getItem(ACTIVE_USER_SESSION_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.email && parsed.uid !== "demo-studio-guest") {
-        return parsed;
-      }
-    }
-  } catch (err) {
-    console.warn("⚠️ [Local Storage] Failed to read active user session:", err.message);
-  }
+  // Always return null so visitors are never automatically signed in without asking
   return null;
 }
 
 function saveActiveUser(userObj) {
   if (typeof window === "undefined") return;
   try {
+    window.localStorage.removeItem(ACTIVE_USER_SESSION_KEY);
     if (userObj && userObj.email && userObj.uid !== "demo-studio-guest") {
-      window.localStorage.setItem(ACTIVE_USER_SESSION_KEY, JSON.stringify(userObj));
+      window.sessionStorage.setItem(ACTIVE_USER_SESSION_KEY, JSON.stringify(userObj));
     } else {
-      window.localStorage.removeItem(ACTIVE_USER_SESSION_KEY);
+      window.sessionStorage.removeItem(ACTIVE_USER_SESSION_KEY);
     }
   } catch (_) {}
 }
@@ -136,6 +124,14 @@ export default function App() {
     });
   }, []);
 
+  // Always clear stale auto-login keys on page load so visitors start cleanly as logged-out
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(ACTIVE_USER_SESSION_KEY);
+      window.sessionStorage.removeItem(ACTIVE_USER_SESSION_KEY);
+    }
+  }, []);
+
   // Monitor Auth State
   useEffect(() => {
     if (auth && isFirebaseConfigured) {
@@ -157,13 +153,7 @@ export default function App() {
           saveActiveUser(formatted);
           addRecentAccount(formatted);
         } else {
-          // If Firebase signed out, check if a direct active session is present
-          const existing = loadActiveUser();
-          if (existing && existing.email && existing.uid !== "demo-studio-guest") {
-            setUser(existing);
-          } else {
-            setUser(null);
-          }
+          setUser(null);
         }
       });
       return () => unsubscribe();
