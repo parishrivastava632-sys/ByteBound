@@ -108,6 +108,17 @@ export default function App() {
     saveSavedProjects(projects);
   }, [projects]);
 
+  // Handle direct navigation to /signin, /login or ?auth=true
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const pathname = (window.location.pathname || "").toLowerCase();
+      const search = (window.location.search || "").toLowerCase();
+      if (pathname.includes("sign") || pathname.includes("login") || search.includes("auth")) {
+        setIsAuthModalOpen(true);
+      }
+    }
+  }, []);
+
   const addRecentAccount = useCallback((account) => {
     if (!account || !account.email) {
       return;
@@ -308,7 +319,7 @@ export default function App() {
 
       setGeneratedData(packageData);
       setActiveProjectId(fallbackId);
-      setSavedProjects((prev) => [newProj, ...prev]);
+      setProjects((prev) => [newProj, ...prev]);
       setSuccessToast("Media package synthesized successfully!");
       setTimeout(() => setSuccessToast(""), 4000);
 
